@@ -5,25 +5,25 @@ import (
 )
 
 type User struct {
-    Id       int64  `json:"id"`
-    Deleted  bool   `json:"-"`
-    Email    string `json:"email"`
-    Name     string `json:"name"`
-    Password string `json:"-"`
+	Id       int64  `json:"id"`
+	Deleted  bool   `json:"-"`
+	Email    string `json:"email"`
+	Name     string `json:"name"`
+	Password string `json:"-"`
 }
 
 func NewUser(name, email, password string) (User, error) {
-    pwHash, err := HashPw(password)
-    if err != nil {
-        return User{}, err
-    }
+	pwHash, err := HashPw(password)
+	if err != nil {
+		return User{}, err
+	}
 
-    return User {
-        Deleted: false,
-        Email: email,
-        Name: name,
-        Password: pwHash,
-    }, nil
+	return User{
+		Deleted:  false,
+		Email:    email,
+		Name:     name,
+		Password: pwHash,
+	}, nil
 }
 
 func HashPw(pass string) (string, error) {

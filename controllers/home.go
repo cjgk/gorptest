@@ -1,17 +1,17 @@
 package controllers
 
 import (
-    "net/http"
-    "log"
-    "github.com/coopernurse/gorp"
+	"github.com/coopernurse/gorp"
+	"log"
+	"net/http"
 )
 
 func checkErr(err error, msg string) {
-    if err != nil {
-        log.Fatalln(msg, err)
-    }
+	if err != nil {
+		log.Fatalln(msg, err)
+	}
 }
 
-func HomeHandlerGet (w http.ResponseWriter, r *http.Request, db *gorp.DbMap) {
-    log.Println("HOME")
+func HomeHandlerGet(w http.ResponseWriter, r *http.Request, db *gorp.DbMap) {
+	log.Println("HOME")
 }
