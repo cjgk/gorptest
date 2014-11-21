@@ -6,104 +6,113 @@ import (
 	"github.com/cjgk/gorptest/models"
 	"github.com/coopernurse/gorp"
 	"github.com/gorilla/mux"
-	"log"
 	"net/http"
 	"strconv"
+    "errors"
 )
 
-func UserHandlerList(w http.ResponseWriter, r *http.Request, db *gorp.DbMap) {
-	var (
-		users []models.User
-	)
-	_, err := db.Select(&users, "select * from users order by id")
-	if err500(err, w) != nil {
-		return
+type UserController struct {
+    AppController
+    Db *gorp.DbMap
+}
+
+func (c *UserController) Index(w http.ResponseWriter, r *http.Request) error {
+	var users []models.User
+
+	_, err := c.Db.Select(&users, "select * from users order by id")
+    if err != nil {
+		return err
 	}
 
-	log.Println(users)
 	jsonUsers, err := json.Marshal(users)
-	if err500(err, w) != nil {
-		return
+    if err != nil {
+		return err
 	}
 
 	fmt.Fprint(w, string(jsonUsers))
+
+    return nil
 }
 
-func UserHandlerGet(w http.ResponseWriter, r *http.Request, db *gorp.DbMap) {
+func (c *UserController) Get(w http.ResponseWriter, r *http.Request) error {
 	vars := mux.Vars(r)
 
 	userId, err := strconv.Atoi(vars["key"])
-	if err400(err, w) != nil {
-		return
+	if err != nil {
+		return err
 	}
 
-	obj, err := db.Get(models.User{}, userId)
-	if err500(err, w) != nil {
-		return
+	obj, err := c.Db.Get(models.User{}, userId)
+	if err != nil {
+		return err
 	} else if obj == nil {
-		err404(w)
-		return
+		return errors.New("Not found")
 	}
 
 	user := obj.(*models.User)
 
 	jsonUser, err := json.Marshal(user)
-	if err500(err, w) != nil {
-		return
+	if err != nil {
+		return err
 	}
 
 	fmt.Fprint(w, string(jsonUser))
+
+    return nil
 }
 
-func UserHandlerPost(w http.ResponseWriter, r *http.Request, db *gorp.DbMap) {
+func (c *UserController) Post(w http.ResponseWriter, r *http.Request) error {
 	name := r.FormValue("name")
 	email := r.FormValue("email_address")
 	password := r.FormValue("password")
 
 	user, err := models.NewUser(name, email, password)
-	if err500(err, w) != nil {
-		return
+	if err != nil {
+		return err
 	}
 
-	err = db.Insert(&user)
-	if err500(err, w) != nil {
-		return
+	err = c.Db.Insert(&user)
+	if err != nil {
+		return err
 	}
 
 	jsonUser, err := json.Marshal(user)
-	if err500(err, w) != nil {
-		return
+	if err != nil {
+		return err
 	}
 
 	w.WriteHeader(http.StatusCreated)
 	fmt.Fprint(w, string(jsonUser))
+
+    return nil
 }
 
-func UserHandlerDelete(w http.ResponseWriter, r *http.Request, db *gorp.DbMap) {
+func (c *UserController) Delete(w http.ResponseWriter, r *http.Request) error {
 	vars := mux.Vars(r)
 
 	userId, err := strconv.Atoi(vars["key"])
-	if err400(err, w) != nil {
-		return
+	if err != nil {
+		return err
 	}
 
-	obj, err := db.Get(models.User{}, userId)
-	if err500(err, w) != nil {
-		return
+	obj, err := c.Db.Get(models.User{}, userId)
+	if err != nil {
+		return err
 	} else if obj == nil {
-		err404(w)
-		return
+		return errors.New("Not found")
 	}
 
 	user := obj.(*models.User)
 
-	_, err = db.Delete(user)
-	if err500(err, w) != nil {
-		return
+	_, err = c.Db.Delete(user)
+	if err != nil {
+		return err
 	}
+
+    return nil
 }
 
-func UserHandlerPut(w http.ResponseWriter, r *http.Request, db *gorp.DbMap) {
+func (c *UserController) Put(w http.ResponseWriter, r *http.Request) error {
 	vars := mux.Vars(r)
 
 	name := r.FormValue("name")
@@ -111,21 +120,19 @@ func UserHandlerPut(w http.ResponseWriter, r *http.Request, db *gorp.DbMap) {
 	password := r.FormValue("password")
 
 	userId, err := strconv.Atoi(vars["key"])
-	if err400(err, w) != nil {
-		return
+	if err != nil {
+		return err
 	}
 
-	obj, err := db.Get(models.User{}, userId)
-	if err500(err, w) != nil {
-		return
+	obj, err := c.Db.Get(models.User{}, userId)
+	if err != nil {
+		return err
 	} else if obj == nil {
-		err404(w)
-		return
+		return errors.New("Not Found")
 	}
 
 	user := obj.(*models.User)
 
-	log.Println(user)
 	if len(name) > 0 {
 		user.Name = name
 	}
@@ -136,22 +143,24 @@ func UserHandlerPut(w http.ResponseWriter, r *http.Request, db *gorp.DbMap) {
 
 	if len(password) > 0 {
 		pwHash, err := models.HashPw(password)
-		if err500(err, w) != nil {
-			return
+		if err != nil {
+			return err
 		}
 
 		user.Password = pwHash
 	}
 
-	_, err = db.Update(user)
-	if err500(err, w) != nil {
-		return
+	_, err = c.Db.Update(user)
+	if err != nil {
+		return err
 	}
 
 	jsonUser, err := json.Marshal(user)
-	if err500(err, w) != nil {
-		return
+	if err != nil {
+		return err
 	}
 
 	fmt.Fprint(w, string(jsonUser))
+
+    return nil
 }

@@ -7,6 +7,7 @@ import (
 	"net/http"
 )
 
+
 func main() {
 	// Set up Gorp
 	db := models.InitDb()
@@ -20,25 +21,12 @@ func main() {
 		controllers.HomeHandlerGet(w, r, db)
 	})
 
-	router.HandleFunc("/users", func(w http.ResponseWriter, r *http.Request) {
-		controllers.UserHandlerList(w, r, db)
-	}).Methods("GET")
-
-	router.HandleFunc("/users/{key}", func(w http.ResponseWriter, r *http.Request) {
-		controllers.UserHandlerGet(w, r, db)
-	}).Methods("GET")
-
-	router.HandleFunc("/users", func(w http.ResponseWriter, r *http.Request) {
-		controllers.UserHandlerPost(w, r, db)
-	}).Methods("POST")
-
-	router.HandleFunc("/users/{key}", func(w http.ResponseWriter, r *http.Request) {
-		controllers.UserHandlerPut(w, r, db)
-	}).Methods("PUT")
-
-	router.HandleFunc("/users/{key}", func(w http.ResponseWriter, r *http.Request) {
-		controllers.UserHandlerDelete(w, r, db)
-	}).Methods("DELETE")
+    users := &controllers.UserController{Db: db}
+	router.HandleFunc("/users", users.Action(users.Index)).Methods("GET")
+	router.HandleFunc("/users/{key}", users.Action(users.Get)).Methods("GET")
+	router.HandleFunc("/users", users.Action(users.Post)).Methods("POST")
+	router.HandleFunc("/users/{key}", users.Action(users.Post)).Methods("PUT")
+	router.HandleFunc("/users/{key}", users.Action(users.Delete)).Methods("DELETE")
 
 	http.Handle("/", router)
 
