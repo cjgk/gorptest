@@ -4,19 +4,21 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/cjgk/gorptest/models"
-	"github.com/coopernurse/gorp"
+	//"github.com/coopernurse/gorp"
 	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
-    "errors"
+    //"errors"
+    //"log"
 )
 
 type UserController struct {
     AppController
-    Db *gorp.DbMap
+    Service map[string]models.TableService
 }
 
 func (c *UserController) Index(w http.ResponseWriter, r *http.Request) error {
+    /*
 	var users []models.User
 
 	_, err := c.Db.Select(&users, "select * from users order by id")
@@ -31,6 +33,7 @@ func (c *UserController) Index(w http.ResponseWriter, r *http.Request) error {
 
 	fmt.Fprint(w, string(jsonUsers))
 
+    */
     return nil
 }
 
@@ -42,28 +45,25 @@ func (c *UserController) Get(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	obj, err := c.Db.Get(models.User{}, userId)
-	if err != nil {
-		return err
-	} else if obj == nil {
-		return errors.New("Not found")
-	}
+    user, err := c.Service["user"].Retrieve(userId)
+    if err != nil {
+        return err
+    }
 
-	user := obj.(*models.User)
-
-	jsonUser, err := json.Marshal(user)
-	if err != nil {
-		return err
-	}
-
-	fmt.Fprint(w, string(jsonUser))
+    jsonUser, err := json.Marshal(user)
+    if err != nil {
+        return err
+    }
+    fmt.Fprint(w, string(jsonUser))
 
     return nil
 }
 
+
 func (c *UserController) Post(w http.ResponseWriter, r *http.Request) error {
-	name := r.FormValue("name")
-	email := r.FormValue("email_address")
+    /*
+	name     := r.FormValue("name")
+	email    := r.FormValue("email_address")
 	password := r.FormValue("password")
 
 	user, err := models.NewUser(name, email, password)
@@ -71,7 +71,7 @@ func (c *UserController) Post(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	err = c.Db.Insert(&user)
+	err = c.Service["user"].Create(user)
 	if err != nil {
 		return err
 	}
@@ -84,6 +84,7 @@ func (c *UserController) Post(w http.ResponseWriter, r *http.Request) error {
 	w.WriteHeader(http.StatusCreated)
 	fmt.Fprint(w, string(jsonUser))
 
+    */
     return nil
 }
 
@@ -95,24 +96,16 @@ func (c *UserController) Delete(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	obj, err := c.Db.Get(models.User{}, userId)
-	if err != nil {
-		return err
-	} else if obj == nil {
-		return errors.New("Not found")
-	}
-
-	user := obj.(*models.User)
-
-	_, err = c.Db.Delete(user)
-	if err != nil {
-		return err
-	}
+    err = c.Service["user"].Delete(userId)
+    if err != nil {
+        return err
+    }
 
     return nil
 }
 
 func (c *UserController) Put(w http.ResponseWriter, r *http.Request) error {
+    /*
 	vars := mux.Vars(r)
 
 	name := r.FormValue("name")
@@ -162,5 +155,6 @@ func (c *UserController) Put(w http.ResponseWriter, r *http.Request) error {
 
 	fmt.Fprint(w, string(jsonUser))
 
+    */
     return nil
 }

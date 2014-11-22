@@ -10,18 +10,21 @@ import (
 
 func main() {
 	// Set up Gorp
-	db := models.InitDb()
-	defer db.Db.Close()
+	dbmap := models.InitDb()
+	defer dbmap.Db.Close()
+
+    // Set up Table services
+    tableServices := models.InitTableServices(dbmap)
 
 	// Set up router
 	router := mux.NewRouter()
 	router.StrictSlash(false)
 
 	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		controllers.HomeHandlerGet(w, r, db)
+		controllers.HomeHandlerGet(w, r, dbmap)
 	})
 
-    users := &controllers.UserController{Db: db}
+    users := &controllers.UserController{Service: tableServices}
 	router.HandleFunc("/users", users.Action(users.Index)).Methods("GET")
 	router.HandleFunc("/users/{key}", users.Action(users.Get)).Methods("GET")
 	router.HandleFunc("/users", users.Action(users.Post)).Methods("POST")
