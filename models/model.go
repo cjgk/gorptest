@@ -6,15 +6,11 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	"log"
 	"os"
+    "errors"
 )
 
-type Table interface {}
-
-type TableService interface {
-    Create() error
-    Retrieve(id int) (interface{}, error)
-    Update() error
-    Delete(id int) error
+type Services struct {
+    User userService
 }
 
 func checkErr(err error, msg string) {
@@ -22,6 +18,10 @@ func checkErr(err error, msg string) {
 		log.Fatalln(msg, err)
 	}
 }
+
+var (
+    ErrNotFound = errors.New("Could not find entity")
+)
 
 // Initialize gorp for struct mapping
 func InitDb() *gorp.DbMap {
@@ -34,7 +34,7 @@ func InitDb() *gorp.DbMap {
 	dbmap := &gorp.DbMap{Db: db, Dialect: gorp.SqliteDialect{}}
 	dbmap.TraceOn("[gorp]", log.New(os.Stdout, "myapp:", log.Lmicroseconds))
 
-	dbmap.AddTableWithName(User{}, "users").SetKeys(true, "Id")
+	dbmap.AddTableWithName(UserFields{}, "users").SetKeys(true, "Id")
 
 	err = dbmap.CreateTablesIfNotExists()
 	checkErr(err, "Create tables failed")
@@ -43,10 +43,11 @@ func InitDb() *gorp.DbMap {
 }
 
 // Initalize Services
-func InitTableServices(dbmap *gorp.DbMap) map[string]TableService {
-    services := make(map[string]TableService)
-    _ = services
-    services["user"] = NewUserService(dbmap)
+func InitTableServices(dbmap *gorp.DbMap) Services {
+    services := Services{
+        User: NewUserService(dbmap),
+    }
+
 
 	return services
 }
