@@ -1,56 +1,56 @@
 package controllers
 
 import (
-	"github.com/cjgk/gorptest/models"
-	"net/http"
 	"encoding/json"
 	"fmt"
+	"github.com/cjgk/gorptest/models"
 	"github.com/gorilla/mux"
+	"net/http"
 	"strconv"
 )
 
 type UserController struct {
-    AppController
-    Services models.Services
+	AppController
+	Services models.Services
 }
 
 func (c *UserController) Index(w http.ResponseWriter, r *http.Request) error {
 	var users []models.User
 
 	err := c.Services.User.RetrieveSet(&users)
-    if err != nil {
+	if err != nil {
 		return err
 	}
 
 	jsonUsers, err := json.Marshal(users)
-    if err != nil {
+	if err != nil {
 		return err
 	}
 
 	fmt.Fprint(w, string(jsonUsers))
 
-    return nil
+	return nil
 }
 
 func (c *UserController) Get(w http.ResponseWriter, r *http.Request) error {
-    user, err := c.getRequestedUser(r)
-    if err != nil {
-        return err
-    }
+	user, err := c.getRequestedUser(r)
+	if err != nil {
+		return err
+	}
 
-    jsonUser, err := json.Marshal(user)
-    if err != nil {
-        return err
-    }
+	jsonUser, err := json.Marshal(user)
+	if err != nil {
+		return err
+	}
 
-    fmt.Fprint(w, string(jsonUser))
+	fmt.Fprint(w, string(jsonUser))
 
-    return nil
+	return nil
 }
 
 func (c *UserController) Post(w http.ResponseWriter, r *http.Request) error {
-	name     := r.FormValue("name")
-	email    := r.FormValue("email")
+	name := r.FormValue("name")
+	email := r.FormValue("email")
 	password := r.FormValue("password")
 
 	user, err := models.NewUser(name, email, password)
@@ -58,9 +58,9 @@ func (c *UserController) Post(w http.ResponseWriter, r *http.Request) error {
 		return Err400
 	}
 
-    if err := c.Services.User.Save(&user); err != nil {
-        return Err500
-    }
+	if err := c.Services.User.Save(&user); err != nil {
+		return Err500
+	}
 
 	jsonUser, err := json.Marshal(user)
 	if err != nil {
@@ -70,29 +70,29 @@ func (c *UserController) Post(w http.ResponseWriter, r *http.Request) error {
 	w.WriteHeader(http.StatusCreated)
 	fmt.Fprint(w, string(jsonUser))
 
-    return nil
+	return nil
 }
 
 func (c *UserController) Delete(w http.ResponseWriter, r *http.Request) error {
 
-    user, err := c.getRequestedUser(r)
-    if err != nil {
-        return err
-    }
+	user, err := c.getRequestedUser(r)
+	if err != nil {
+		return err
+	}
 
-    err = c.Services.User.Delete(&user)
-    if err != nil {
-        return Err500
-    }
+	err = c.Services.User.Delete(&user)
+	if err != nil {
+		return Err500
+	}
 
-    return nil
+	return nil
 }
 
 func (c *UserController) Put(w http.ResponseWriter, r *http.Request) error {
-    user, err := c.getRequestedUser(r)
-    if err != nil {
-        return err
-    }
+	user, err := c.getRequestedUser(r)
+	if err != nil {
+		return err
+	}
 
 	name := r.FormValue("name")
 	email := r.FormValue("email_address")
@@ -127,25 +127,24 @@ func (c *UserController) Put(w http.ResponseWriter, r *http.Request) error {
 
 	fmt.Fprint(w, string(jsonUser))
 
-    return nil
+	return nil
 }
 
 func (c *UserController) getRequestedUser(r *http.Request) (models.User, error) {
 	vars := mux.Vars(r)
-    user := models.User{}
+	user := models.User{}
 
 	userId, err := strconv.Atoi(vars["key"])
 	if err != nil {
 		return user, Err400
 	}
 
-    err = c.Services.User.Retrieve(&user, userId)
-    if err == models.ErrNotFound {
-        return user, Err404
-    } else if err != nil {
-        return user, Err500
-    }
+	err = c.Services.User.Retrieve(&user, userId)
+	if err == models.ErrNotFound {
+		return user, Err404
+	} else if err != nil {
+		return user, Err500
+	}
 
-    return user, nil
+	return user, nil
 }
-

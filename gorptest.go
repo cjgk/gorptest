@@ -7,14 +7,13 @@ import (
 	"net/http"
 )
 
-
 func main() {
 	// Set up Gorp
 	dbmap := models.InitDb()
 	defer dbmap.Db.Close()
 
-    // Set up Table services
-    tableServices := models.InitTableServices(dbmap)
+	// Set up Table services
+	tableServices := models.InitTableServices(dbmap)
 
 	// Set up router
 	router := mux.NewRouter()
@@ -24,7 +23,7 @@ func main() {
 		controllers.HomeHandlerGet(w, r, dbmap)
 	})
 
-    users := &controllers.UserController{Services: tableServices}
+	users := &controllers.UserController{Services: tableServices}
 	router.HandleFunc("/users", users.Action(users.Index)).Methods("GET")
 	router.HandleFunc("/users/{key}", users.Action(users.Get)).Methods("GET")
 	router.HandleFunc("/users", users.Action(users.Post)).Methods("POST")

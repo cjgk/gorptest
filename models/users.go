@@ -1,9 +1,9 @@
 package models
 
 import (
-	"github.com/coopernurse/gorp"
 	"code.google.com/p/go.crypto/bcrypt"
-    "database/sql"
+	"database/sql"
+	"github.com/coopernurse/gorp"
 )
 
 type UserFields struct {
@@ -15,115 +15,115 @@ type UserFields struct {
 }
 
 type User struct {
-    UserFields
+	UserFields
 }
 
 func (u *User) Populate(uf UserFields) error {
-    u.Id = uf.Id
-    u.Deleted = uf.Deleted
-    u.Email = uf.Email
-    u.Name = uf.Name
-    u.Password = uf.Password
-    return nil
+	u.Id = uf.Id
+	u.Deleted = uf.Deleted
+	u.Email = uf.Email
+	u.Name = uf.Name
+	u.Password = uf.Password
+	return nil
 }
 
 func (u *User) Extract() UserFields {
-    return UserFields{
-        Id: u.Id,
-        Deleted: u.Deleted,
-        Email: u.Email,
-        Name: u.Name,
-        Password: u.Password,
-    }
+	return UserFields{
+		Id:       u.Id,
+		Deleted:  u.Deleted,
+		Email:    u.Email,
+		Name:     u.Name,
+		Password: u.Password,
+	}
 }
 
 type userServicer interface {
-    Retrieve(user *User, id int) error
-    RetrieveSet(users *[]User) error
-    Save(user *User) error
-    Delete(user *User) error
+	Retrieve(user *User, id int) error
+	RetrieveSet(users *[]User) error
+	Save(user *User) error
+	Delete(user *User) error
 }
 
 type userService struct {
-    Db *gorp.DbMap
+	Db *gorp.DbMap
 }
 
 func (us userService) Retrieve(user *User, id int) error {
-    query := "select * from users where deleted = 0 and id = ?"
-    userFields := UserFields{}
-    err := us.Db.SelectOne(&userFields, query, id)
-    if err == sql.ErrNoRows {
-        return ErrNotFound
-    } else if err != nil {
-        return err
-    }
+	query := "select * from users where deleted = 0 and id = ?"
+	userFields := UserFields{}
+	err := us.Db.SelectOne(&userFields, query, id)
+	if err == sql.ErrNoRows {
+		return ErrNotFound
+	} else if err != nil {
+		return err
+	}
 
-    user.Populate(userFields)
+	user.Populate(userFields)
 
-    return nil
+	return nil
 }
 
 func (us userService) RetrieveSet(users *[]User) error {
-    query := "select * from users where deleted = 0"
-    _, err := us.Db.Select(users, query)
-    if err != nil {
-        return err
-    }
+	query := "select * from users where deleted = 0"
+	_, err := us.Db.Select(users, query)
+	if err != nil {
+		return err
+	}
 
-    return nil
+	return nil
 }
 
 func (us userService) Save(user *User) error {
-    var err error
+	var err error
 
-    userFields := user.Extract()
-    if userFields.Id == 0 {
-        err = us.Db.Insert(&userFields)
-    } else {
-        _, err = us.Db.Update(&userFields)
-    }
+	userFields := user.Extract()
+	if userFields.Id == 0 {
+		err = us.Db.Insert(&userFields)
+	} else {
+		_, err = us.Db.Update(&userFields)
+	}
 
-    if err != nil {
-        return err
-    }
+	if err != nil {
+		return err
+	}
 
-    user.Populate(userFields)
+	user.Populate(userFields)
 
-    return nil
+	return nil
 }
 
 func (us userService) Delete(user *User) error {
-    userFields := user.Extract()
-    userFields.Deleted = true
-    if _, err := us.Db.Update(&userFields); err != nil {
-        return err
-    }
-    user.Populate(userFields)
+	userFields := user.Extract()
+	userFields.Deleted = true
+	if _, err := us.Db.Update(&userFields); err != nil {
+		return err
+	}
+	user.Populate(userFields)
 
-    return nil
+	return nil
 }
 
 func NewUserService(dbmap *gorp.DbMap) userService {
-    return userService{Db: dbmap}
+	return userService{Db: dbmap}
 }
 
 func NewUser(name, email, password string) (User, error) {
 	pwHash, err := HashPw(password)
-    user := User{}
+	user := User{}
 	if err != nil {
 		return User{}, err
 	}
 
-	 user = User{
-        UserFields {
-            Deleted:  false,
-            Email:    email,
-            Name:     name,
-            Password: pwHash,
-        },
+	user = User{
+		UserFields{
+			Deleted:  false,
+			Email:    email,
+			Name:     name,
+			Password: pwHash,
+		},
 	}
 
-    return user, nil
+	return user, nil
 }
 
 func HashPw(pass string) (string, error) {
