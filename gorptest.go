@@ -23,7 +23,7 @@ func main() {
 		controllers.HomeHandlerGet(w, r, dbmap)
 	})
 
-	users := &controllers.UserController{Services: tableServices}
+	users := &controllers.UserController{Services: &tableServices}
 	router.HandleFunc("/users", users.Action(users.Index)).Methods("GET")
 	router.HandleFunc("/users/{key}", users.Action(users.Get)).Methods("GET")
 	router.HandleFunc("/users", users.Action(users.Post)).Methods("POST")

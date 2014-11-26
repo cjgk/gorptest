@@ -11,7 +11,7 @@ import (
 
 type UserController struct {
 	AppController
-	Services models.Services
+	Services *models.Services
 }
 
 func (c *UserController) Index(w http.ResponseWriter, r *http.Request) error {
