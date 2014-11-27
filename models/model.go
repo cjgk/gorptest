@@ -10,7 +10,7 @@ import (
 )
 
 type Services struct {
-	User userService
+	User userServicer
 }
 
 func checkErr(err error, msg string) {
@@ -50,3 +50,4 @@ func InitTableServices(dbmap *gorp.DbMap) Services {
 
 	return services
 }
+

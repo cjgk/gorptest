@@ -4,6 +4,7 @@ import (
 	"code.google.com/p/go.crypto/bcrypt"
 	"database/sql"
 	"github.com/coopernurse/gorp"
+    "os"
 )
 
 type UserFields struct {
@@ -16,6 +17,25 @@ type UserFields struct {
 
 type User struct {
 	UserFields
+}
+
+func NewUser(name, email, password string) (User, error) {
+	pwHash, err := HashPw(password)
+	user := User{}
+	if err != nil {
+		return User{}, err
+	}
+
+	user = User{
+		UserFields{
+			Deleted:  false,
+			Email:    email,
+			Name:     name,
+			Password: pwHash,
+		},
+	}
+
+	return user, nil
 }
 
 func (u *User) Populate(uf UserFields) error {
@@ -46,6 +66,16 @@ type userServicer interface {
 
 type userService struct {
 	Db *gorp.DbMap
+}
+
+func NewUserService(dbmap *gorp.DbMap) userServicer {
+    var environment string = os.Getenv("GOENV")
+
+    if environment == "TEST" {
+        return  mockUserService{}
+    }
+
+	return userService{Db: dbmap}
 }
 
 func (us userService) Retrieve(user *User, id int) error {
@@ -101,29 +131,6 @@ func (us userService) Delete(user *User) error {
 	user.Populate(userFields)
 
 	return nil
-}
-
-func NewUserService(dbmap *gorp.DbMap) userService {
-	return userService{Db: dbmap}
-}
-
-func NewUser(name, email, password string) (User, error) {
-	pwHash, err := HashPw(password)
-	user := User{}
-	if err != nil {
-		return User{}, err
-	}
-
-	user = User{
-		UserFields{
-			Deleted:  false,
-			Email:    email,
-			Name:     name,
-			Password: pwHash,
-		},
-	}
-
-	return user, nil
 }
 
 func HashPw(pass string) (string, error) {

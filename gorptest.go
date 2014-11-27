@@ -15,15 +15,13 @@ func main() {
 	// Set up Table services
 	tableServices := models.InitTableServices(dbmap)
 
+    // Create controllers and add Services to them
+	users := &controllers.UserController{Services: &tableServices}
+
 	// Set up router
 	router := mux.NewRouter()
 	router.StrictSlash(false)
 
-	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		controllers.HomeHandlerGet(w, r, dbmap)
-	})
-
-	users := &controllers.UserController{Services: &tableServices}
 	router.HandleFunc("/users", users.Action(users.Index)).Methods("GET")
 	router.HandleFunc("/users/{key}", users.Action(users.Get)).Methods("GET")
 	router.HandleFunc("/users", users.Action(users.Post)).Methods("POST")
